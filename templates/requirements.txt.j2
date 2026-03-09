@@ -1,0 +1,9 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.0
+langchain-core>=0.3
+langgraph>=0.2
+langgraph-prebuilt>=0.1
+{% if schema.llm.provider == "anthropic" %}langchain-anthropic>=0.3
+{% elif schema.llm.provider == "openai" %}langchain-openai>=0.2
+{% endif %}python-dotenv>=1.0

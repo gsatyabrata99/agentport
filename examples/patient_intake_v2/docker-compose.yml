@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  patient_intake:
+    build: .
+    image: patient_intake:1.0.0
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - AUDIT_LOG_TO_FILE=0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    # Compliance labels: HIPAA, SOC2
+    labels:
+      - "compliance.hipaa=true"
+      - "compliance.soc2=true"

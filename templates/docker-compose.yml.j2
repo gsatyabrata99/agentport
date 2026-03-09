@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  {{ schema.name }}:
+    build: .
+    image: {{ schema.name }}:{{ schema.version }}
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - AUDIT_LOG_TO_FILE=0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+{% if schema.compliance %}
+    # Compliance labels: {{ schema.compliance | join(", ") }}
+    labels:
+{% for c in schema.compliance %}      - "compliance.{{ c | lower }}=true"
+{% endfor %}
+{% endif %}

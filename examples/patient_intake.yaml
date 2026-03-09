@@ -1,0 +1,125 @@
+name: patient_intake
+version: "1.0.0"
+description: "HIPAA-compliant patient intake agent for scheduling and insurance verification"
+compliance:
+  - HIPAA
+  - SOC2
+
+llm:
+  provider: openai
+  model: gpt-4o
+  api_key_env: OPENAI_API_KEY
+  temperature: 0.2
+  max_tokens: 1024
+
+state:
+  patient_name:
+    type: str
+    required: false
+    description: "Full legal name of the patient"
+    phi: true
+  date_of_birth:
+    type: str
+    required: false
+    description: "Patient date of birth (YYYY-MM-DD)"
+    phi: true
+  reason_for_visit:
+    type: str
+    required: false
+    description: "Chief complaint or reason for visit"
+  insurance_id:
+    type: str
+    required: false
+    description: "Patient insurance member ID"
+    phi: true
+  insurance_verified:
+    type: bool
+    default: false
+    description: "Whether insurance has been verified"
+  appointment_slot:
+    type: str
+    required: false
+    description: "Confirmed appointment slot"
+  messages:
+    type: list
+    default: []
+    description: "Conversation message history"
+
+tools:
+  - name: verify_insurance
+    description: "Verify patient insurance coverage with the payer"
+    parameters:
+      - name: insurance_id
+        type: str
+        required: true
+        description: "Insurance member ID"
+      - name: patient_name
+        type: str
+        required: true
+        description: "Full patient name for verification"
+    returns:
+      type: dict
+    mock:
+      verified: true
+      plan: "Blue Cross PPO"
+      copay: 30
+
+  - name: check_availability
+    description: "Check available appointment slots"
+    parameters:
+      - name: preferred_date
+        type: str
+        required: false
+        description: "Preferred date in YYYY-MM-DD format"
+    returns:
+      type: list
+    mock:
+      - "2026-03-12 09:00"
+      - "2026-03-12 14:00"
+      - "2026-03-13 10:30"
+
+  - name: schedule_appointment
+    description: "Book an appointment slot for the patient"
+    parameters:
+      - name: patient_name
+        type: str
+        required: true
+        description: "Full patient name"
+      - name: slot
+        type: str
+        required: true
+        description: "Appointment slot from check_availability"
+    returns:
+      type: str
+    mock: "Appointment confirmed: 2026-03-12 09:00 — Confirmation #APT-7842"
+
+nodes:
+  - name: intake_agent
+    type: llm
+    system_prompt: |
+      You are a HIPAA-compliant patient intake assistant for a medical practice.
+      Your role is to:
+      1. Collect patient name, date of birth, reason for visit, and insurance ID.
+      2. Verify insurance coverage using the verify_insurance tool.
+      3. Check appointment availability using check_availability.
+      4. Schedule the appointment using schedule_appointment.
+      Be professional, empathetic, and concise. Never echo back PHI unnecessarily.
+    tools:
+      - verify_insurance
+      - check_availability
+      - schedule_appointment
+
+  - name: tools
+    type: tool_executor
+
+edges:
+  - from: __start__
+    to: intake_agent
+  - from: intake_agent
+    to: tools
+    condition: has_tool_calls
+  - from: intake_agent
+    to: __end__
+    condition: no_tool_calls
+  - from: tools
+    to: intake_agent

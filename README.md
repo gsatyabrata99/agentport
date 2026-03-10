@@ -67,6 +67,15 @@ curl -X POST http://localhost:8001/invoke \
 # {"response": "I can help with that. Could you provide your full name, date of birth, reason for visit, and insurance ID?", "session_id": "s1"}
 ```
 
+## Canvas
+
+AgentPort includes a visual drag-and-drop canvas for building agents without writing YAML manually.
+
+![AgentPort Canvas](docs/canvas.png)
+
+Open the canvas:
+cd web && npm install && npm run dev
+
 ---
 
 ## Agent Definition Schema
@@ -178,7 +187,7 @@ Compliance:    HIPAA, SOC2, GDPR-ready
 - [x] FastAPI wrapper with audit logging
 - [x] Docker packaging
 - [x] Multi-provider LLM support (OpenAI, Anthropic)
-- [ ] React Flow visual canvas (frontend builder)
+- [x] React Flow visual canvas (frontend builder)
 - [ ] FastAPI management layer (agent registry, versioning)
 - [ ] Human-in-the-loop approval gates
 - [ ] RBAC configuration
